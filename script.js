@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetBtn = document.getElementById('reset-btn');
     const toast = document.getElementById('toast');
 
+    // State
+    let currentFileName = "converted";
+
     // Drag & Drop Handlers
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -42,7 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // File Processing
     async function handleFile(file) {
         const fileType = file.name.split('.').pop().toLowerCase();
-        
+
+        // Capture filename without extension
+        currentFileName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+
         showLoader();
 
         try {
@@ -80,11 +86,11 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            
+
             // Simple layout reconstruction based on Y position
             let lastY = -1;
             let pageText = "";
-            
+
             // Sort items by Y (descending) then X (ascending) to ensure reading order
             const items = textContent.items.sort((a, b) => {
                 if (Math.abs(b.transform[5] - a.transform[5]) > 5) { // Line threshold
@@ -100,30 +106,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (lastY !== -1 && Math.abs(currentY - lastY) > 10) {
                     pageText += "\n";
                 } else if (lastY !== -1) {
-                     pageText += " "; // Space between words on same line
+                    pageText += " "; // Space between words on same line
                 }
-                
+
                 pageText += text;
                 lastY = currentY;
             }
 
             fullText += `## Page ${i}\n\n${pageText}\n\n---\n\n`;
         }
-        
+
         return fullText;
     }
 
     // HWPX Conversion Logic (XML Parsing)
     async function convertHWPXToMarkdown(file) {
         const zip = await JSZip.loadAsync(file);
-        
+
         // HWPX usually stores content in Contents/section0.xml
         // We might need to handle multiple sections
         let fullText = "";
-        
+
         // Find section files
         const sectionFiles = Object.keys(zip.files).filter(path => path.match(/Contents\/section\d+\.xml/));
-        
+
         if (sectionFiles.length === 0) {
             throw new Error("Invalid HWPX structure. No content sections found.");
         }
@@ -142,17 +148,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function parseHWPXXML(xmlString) {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-        
+
         let text = "";
-        
+
         // HWPX uses <hp:t> tags for text
         const textNodes = xmlDoc.getElementsByTagName("hp:t");
-        
+
         // Basic extraction: iterate and grab text. 
         // Improvement: Look for paragraph tags <hp:p> to add newlines.
-        
+
         const paragraphs = xmlDoc.getElementsByTagName("hp:p");
-        
+
         for (let p of paragraphs) {
             let pText = "";
             const tNodes = p.getElementsByTagName("hp:t");
@@ -164,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 text += pText + "\n\n";
             }
         }
-        
+
         return text;
     }
 
@@ -205,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'converted.md';
+        a.download = `${currentFileName}.md`;
         a.click();
         URL.revokeObjectURL(url);
     });
