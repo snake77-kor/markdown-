@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const toast = document.getElementById('toast');
 
     // State
-    let currentFileName = "converted";
+    let processedFiles = [];
 
     // Drag & Drop Handlers
     dropZone.addEventListener('dragover', (e) => {
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dropZone.classList.remove('drag-over');
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            handleFile(files[0]);
+            handleFiles(files);
         }
     });
 
@@ -38,38 +38,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            handleFile(e.target.files[0]);
+            handleFiles(e.target.files);
         }
     });
 
     // File Processing
-    async function handleFile(file) {
-        const fileType = file.name.split('.').pop().toLowerCase();
-
-        // Capture filename without extension
-        currentFileName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-
+    async function handleFiles(files) {
         showLoader();
+        processedFiles = [];
+        let combinedMarkdown = "";
 
         try {
-            let markdown = "";
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileType = file.name.split('.').pop().toLowerCase();
+                const fileNameBase = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
 
-            if (fileType === 'pdf') {
-                markdown = await convertPDFToMarkdown(file);
-            } else if (fileType === 'hwpx') {
-                markdown = await convertHWPXToMarkdown(file);
-            } else if (fileType === 'hwp') {
-                throw new Error("Legacy HWP format is not supported in the browser due to security and complexity. Please save the file as 'HWPX' or 'PDF' and try again.");
-            } else {
-                throw new Error("Unsupported file format. Please use PDF or HWPX.");
+                let markdown = "";
+
+                try {
+                    if (fileType === 'pdf') {
+                        markdown = await convertPDFToMarkdown(file);
+                    } else if (fileType === 'hwpx') {
+                        markdown = await convertHWPXToMarkdown(file);
+                    } else if (fileType === 'hwp') {
+                        throw new Error(`Legacy HWP format (${file.name}) is not supported. Please use HWPX or PDF.`);
+                    } else {
+                        throw new Error(`Unsupported file format: ${file.name}`);
+                    }
+
+                    if (!markdown.trim()) {
+                        console.warn(`No text content in ${file.name}`);
+                        markdown = `(No text content found in ${file.name})`;
+                    }
+
+                    processedFiles.push({
+                        name: fileNameBase,
+                        content: markdown
+                    });
+
+                    combinedMarkdown += `# File: ${file.name}\n\n${markdown}\n\n---\n\n`;
+
+                } catch (err) {
+                    console.error(err);
+                    combinedMarkdown += `# File: ${file.name}\n\nError: ${err.message}\n\n---\n\n`;
+                }
             }
 
-            if (!markdown.trim()) {
-                throw new Error("No text content found in the document.");
+            if (processedFiles.length === 0) {
+                throw new Error("No files were successfully processed.");
             }
 
-            showOutput(markdown);
-            showToast("Conversion successful!");
+            showOutput(combinedMarkdown);
+            showToast(`Successfully processed ${processedFiles.length} file(s)!`);
+
         } catch (error) {
             console.error(error);
             showToast(error.message || "An error occurred during conversion.");
@@ -185,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.classList.add('hidden');
         outputSection.classList.add('hidden');
         fileInput.value = '';
+        processedFiles = []; // Clear processed files on reset
     }
 
     function showOutput(markdown) {
@@ -206,14 +229,30 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast("Copied to clipboard!");
     });
 
-    downloadBtn.addEventListener('click', () => {
-        const blob = new Blob([markdownOutput.value], { type: 'text/markdown' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${currentFileName}.md`;
-        a.click();
-        URL.revokeObjectURL(url);
+    downloadBtn.addEventListener('click', async () => {
+        if (processedFiles.length === 1) {
+            const file = processedFiles[0];
+            const blob = new Blob([file.content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${file.name}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } else if (processedFiles.length > 1) {
+            const zip = new JSZip();
+            processedFiles.forEach(file => {
+                zip.file(`${file.name}.md`, file.content);
+            });
+
+            const blob = await zip.generateAsync({ type: "blob" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'converted_docs.zip';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
     });
 
     function showToast(msg) {

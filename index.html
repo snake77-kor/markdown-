@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +9,20 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
-    
+
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
 </head>
+
 <body>
     <div class="app-container">
         <header class="app-header">
@@ -34,7 +38,7 @@
                     <div class="icon-large">📂</div>
                     <h2>파일을 여기에 드래그하거나 클릭하여 업로드</h2>
                     <p>지원 형식: PDF, HWPX (HWP는 제한적)</p>
-                    <input type="file" id="file-input" accept=".pdf,.hwpx,.hwp" hidden>
+                    <input type="file" id="file-input" accept=".pdf,.hwpx,.hwp" hidden multiple>
                 </div>
                 <div class="loader hidden" id="loader">
                     <div class="spinner"></div>
@@ -61,10 +65,11 @@
             <p>© 2024 DocuMorph. Secure Client-Side Conversion.</p>
         </footer>
     </div>
-    
+
     <!-- Notification Toast -->
     <div id="toast" class="toast hidden">알림 메시지</div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
