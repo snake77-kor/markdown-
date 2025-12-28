@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuMorph | Premium PDF & HWP to Markdown Converter</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.2/turndown.min.js"></script>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <span class="icon">📄</span> DocuMorph
+            </div>
+            <p class="tagline">PDF와 한글(HWPX) 문서를 마크다운으로 완벽하게 변환하세요.</p>
+        </header>
+
+        <main class="main-content">
+            <div class="drop-zone" id="drop-zone">
+                <div class="drop-content">
+                    <div class="icon-large">📂</div>
+                    <h2>파일을 여기에 드래그하거나 클릭하여 업로드</h2>
+                    <p>지원 형식: PDF, HWPX (HWP는 제한적)</p>
+                    <input type="file" id="file-input" accept=".pdf,.hwpx,.hwp" hidden>
+                </div>
+                <div class="loader hidden" id="loader">
+                    <div class="spinner"></div>
+                    <p>문서 분석 및 변환 중...</p>
+                </div>
+            </div>
+
+            <div class="output-section hidden" id="output-section">
+                <div class="section-header">
+                    <h3>변환 결과 (Markdown)</h3>
+                    <div class="actions">
+                        <button id="copy-btn" class="btn secondary">복사</button>
+                        <button id="download-btn" class="btn primary">다운로드 .md</button>
+                    </div>
+                </div>
+                <div class="editor-container">
+                    <textarea id="markdown-output" readonly></textarea>
+                </div>
+                <button id="reset-btn" class="btn text-btn">다른 파일 변환하기</button>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2024 DocuMorph. Secure Client-Side Conversion.</p>
+        </footer>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">알림 메시지</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
