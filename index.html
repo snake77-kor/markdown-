@@ -49,15 +49,11 @@
             <div class="output-section hidden" id="output-section">
                 <div class="section-header">
                     <h3>변환 결과 (Markdown)</h3>
-                    <div class="actions">
-                        <button id="copy-btn" class="btn secondary">복사</button>
-                        <button id="download-btn" class="btn primary">다운로드 .md</button>
-                    </div>
+                    <button id="reset-btn" class="btn text-btn" style="margin:0; font-size: 0.9rem;">처음으로</button>
                 </div>
-                <div class="editor-container">
-                    <textarea id="markdown-output" readonly></textarea>
+                <div id="results-list" class="results-list">
+                    <!-- File Items will be added here -->
                 </div>
-                <button id="reset-btn" class="btn text-btn">다른 파일 변환하기</button>
             </div>
         </main>
 

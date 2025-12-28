@@ -46,7 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleFiles(files) {
         showLoader();
         processedFiles = [];
-        let combinedMarkdown = "";
+
+        // Clear previous results
+        const resultsList = document.getElementById('results-list');
+        resultsList.innerHTML = '';
 
         try {
             for (let i = 0; i < files.length; i++) {
@@ -62,41 +65,93 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (fileType === 'hwpx') {
                         markdown = await convertHWPXToMarkdown(file);
                     } else if (fileType === 'hwp') {
-                        throw new Error(`Legacy HWP format (${file.name}) is not supported. Please use HWPX or PDF.`);
+                        throw new Error(`Legacy HWP format (${file.name}) is not supported. Please save as HWPX.`);
                     } else {
                         throw new Error(`Unsupported file format: ${file.name}`);
                     }
 
                     if (!markdown.trim()) {
-                        console.warn(`No text content in ${file.name}`);
                         markdown = `(No text content found in ${file.name})`;
                     }
 
-                    processedFiles.push({
-                        name: fileNameBase,
-                        content: markdown
-                    });
-
-                    combinedMarkdown += `# File: ${file.name}\n\n${markdown}\n\n---\n\n`;
+                    // Create Result Card
+                    createResultCard(fileNameBase, markdown);
 
                 } catch (err) {
                     console.error(err);
-                    combinedMarkdown += `# File: ${file.name}\n\nError: ${err.message}\n\n---\n\n`;
+                    createResultCard(fileNameBase, `Error: ${err.message}`, true);
                 }
             }
 
-            if (processedFiles.length === 0) {
-                throw new Error("No files were successfully processed.");
-            }
-
-            showOutput(combinedMarkdown);
-            showToast(`Successfully processed ${processedFiles.length} file(s)!`);
+            // Show Section
+            loader.classList.add('hidden');
+            outputSection.classList.remove('hidden');
+            dropZone.style.display = 'none';
+            showToast(`Processed ${files.length} file(s).`);
 
         } catch (error) {
             console.error(error);
-            showToast(error.message || "An error occurred during conversion.");
+            showToast("An error occurred during processing.");
             resetUI();
         }
+    }
+
+    function createResultCard(fileName, content, isError = false) {
+        const resultsList = document.getElementById('results-list');
+
+        const card = document.createElement('div');
+        card.className = 'file-card';
+
+        const header = document.createElement('div');
+        header.className = 'file-header-bar';
+
+        const title = document.createElement('div');
+        title.className = 'file-title';
+        title.innerHTML = `${isError ? '⚠️ ' : '📄 '} ${fileName}`;
+
+        const actions = document.createElement('div');
+        actions.className = 'file-actions';
+
+        if (!isError) {
+            // Copy Button
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'btn-sm';
+            copyBtn.textContent = '복사';
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(content);
+                showToast("Copied!");
+            };
+
+            // Download Button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'btn-sm download';
+            downloadBtn.textContent = '다운로드';
+            downloadBtn.onclick = () => {
+                const blob = new Blob([content], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileName}.md`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            actions.appendChild(copyBtn);
+            actions.appendChild(downloadBtn);
+        }
+
+        header.appendChild(title);
+        header.appendChild(actions);
+
+        const preview = document.createElement('textarea');
+        preview.className = 'file-preview';
+        preview.readOnly = true;
+        preview.value = content;
+
+        card.appendChild(header);
+        card.appendChild(preview);
+
+        resultsList.appendChild(card);
     }
 
     // PDF Conversion Logic
@@ -207,52 +262,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loader.classList.add('hidden');
         outputSection.classList.add('hidden');
         fileInput.value = '';
-        processedFiles = []; // Clear processed files on reset
-    }
-
-    function showOutput(markdown) {
-        loader.classList.add('hidden');
-        outputSection.classList.remove('hidden');
-        dropZone.style.display = 'none'; // Hide dropzone completely on result
-        markdownOutput.value = markdown;
+        document.getElementById('results-list').innerHTML = '';
+        processedFiles = [];
     }
 
     resetBtn.addEventListener('click', () => {
         dropZone.style.display = 'flex';
         resetUI();
-    });
-
-    // Copy & Download
-    copyBtn.addEventListener('click', () => {
-        markdownOutput.select();
-        document.execCommand('copy');
-        showToast("Copied to clipboard!");
-    });
-
-    downloadBtn.addEventListener('click', async () => {
-        if (processedFiles.length === 1) {
-            const file = processedFiles[0];
-            const blob = new Blob([file.content], { type: 'text/markdown' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${file.name}.md`;
-            a.click();
-            URL.revokeObjectURL(url);
-        } else if (processedFiles.length > 1) {
-            const zip = new JSZip();
-            processedFiles.forEach(file => {
-                zip.file(`${file.name}.md`, file.content);
-            });
-
-            const blob = await zip.generateAsync({ type: "blob" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'converted_docs.zip';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
     });
 
     function showToast(msg) {
