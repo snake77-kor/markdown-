@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocuMerge | PDF Allocator & Merger</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="fontkit.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <span class="icon">📑</span> DocuMerge
+            </div>
+            <p class="tagline">여러 PDF를 연도/월 목차와 함께 하나의 파일로 정리합니다.</p>
+        </header>
+
+        <main class="main-content">
+            <div class="drop-zone" id="drop-zone">
+                <div class="drop-content">
+                    <div class="icon-large">📂</div>
+                    <h2>PDF 파일을 이곳에 드래그하거나 클릭하여 추가</h2>
+                    <p>지원 형식: PDF</p>
+                    <input type="file" id="file-input" accept=".pdf" hidden multiple>
+                </div>
+                <div class="loader hidden" id="loader">
+                    <div class="spinner"></div>
+                    <p>문서 분석 중...</p>
+                </div>
+            </div>
+
+            <div class="output-section hidden" id="output-section">
+                <div class="section-header">
+                    <h3>병합할 PDF 목록</h3>
+                    <div class="header-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button id="add-file-btn" class="btn secondary"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">+ PDF 추가</button>
+                        <button id="merge-btn" class="btn primary"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background-color: #6366f1; color: white;">⚡
+                            PDF 병합 및 미리보기</button>
+                        <button id="reset-btn" class="btn text-btn" style="margin:0; font-size: 0.85rem;">전체
+                            초기화</button>
+                    </div>
+                </div>
+                <div id="results-list" class="results-list">
+                    <!-- File Items will be added here -->
+                </div>
+            </div>
+
+            <!-- PDF Preview Section -->
+            <div class="output-section hidden" id="preview-section" style="margin-top: 2rem;">
+                <div class="section-header">
+                    <h3>병합 결과 미리보기</h3>
+                    <div class="header-actions">
+                        <button id="download-final-btn" class="btn primary"
+                            style="background-color: #ef4444; color: white;">📥 PDF 다운로드</button>
+                        <button id="close-preview-btn" class="btn secondary">닫기</button>
+                    </div>
+                </div>
+                <div class="pdf-viewer-container"
+                    style="height: 600px; background: rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden;">
+                    <iframe id="pdf-preview-frame" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2024 DocuMerge. Secure Client-Side Integration.</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">알림 메시지</div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
